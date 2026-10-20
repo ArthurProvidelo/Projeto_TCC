@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     MOBIPET — PÁGINA OFFLINE
+     Servida pelo service worker (public/sw.js) quando a conexão cai.
+
+     Autossuficiente: CSS, SVG e JS inline. As fontes do Google só aparecem
+     se já estiverem no cache do service worker; senão, usa as do sistema.
+     Ela pode ser exibida em QUALQUER URL do site, por isso não usa nenhum
+     caminho relativo.
+
+     Conteúdo:
+       - Ilustração do "Mobi" olhando a tomada desconectada
+       - Status da conexão com contagem para a próxima verificação
+       - Minijogo "Pula, Mobi!" para segurar o usuário enquanto espera
+       - Recarrega sozinha quando a internet volta (sem interromper o jogo)
+     ===================================================================== -->
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#175cdd">
+    <title>Sem conexão | Mobipet</title>
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;700&display=swap">
+
+    <style>
+        :root {
+            --accent: #175cdd;
+            --accent-dark: #0f47b3;
+            --accent-soft: #eaf1fe;
+            --soft: #dce8fb;
+            --ink: #0f1b34;
+            --heading: #112344;
+            --body: #4a5568;
+            --muted: #8794a7;
+            --amber: #f59e0b;
+            --green: #16a34a;
+            --line: #e6ecf5;
+            --bg: #f7f9ff;
+            --radius: 24px;
+            --radius-sm: 14px;
+            --shadow-sm: 0 10px 30px -14px rgba(15, 27, 52, .2);
+            --shadow: 0 40px 90px -40px rgba(23, 92, 221, .4);
+            --font-body: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+            --font-head: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+            --font-label: "Lato", system-ui, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { margin: 0; }
+
+        body {
+            min-height: 100dvh;
+            font-family: var(--font-body);
+            color: var(--body);
+            background:
+                radial-gradient(48% 40% at 82% 8%, var(--accent-soft) 0%, transparent 62%),
+                radial-gradient(40% 34% at 6% 92%, #e7f8ee 0%, transparent 60%),
+                var(--bg);
+            overflow-x: clip;
+        }
+
+        .wrap {
+            width: min(1140px, 100% - 32px);
+            margin-inline: auto;
+        }
+
+        /* =============================================================
+           TOPO
+           ============================================================= */
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 0;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-head);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--heading);
+        }
+
+        .brand svg { width: 30px; height: 30px; }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-sm);
+            font-family: var(--font-label);
+            font-weight: 700;
+            font-size: .78rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--amber);
+            animation: pulse 1.8s infinite;
+        }
+
+        .is-online .dot { background: var(--green); animation: none; }
+
+        /* =============================================================
+           HERO
+           ============================================================= */
+        .hero {
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            align-items: center;
+            gap: clamp(28px, 5vw, 64px);
+            padding: clamp(1.5rem, 5vw, 3.5rem) 0 clamp(2.5rem, 6vw, 4rem);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-label);
+            font-weight: 700;
+            font-size: .78rem;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background: currentColor;
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.022em;
+            line-height: 1.1;
+            font-size: clamp(2rem, 4.6vw, 3.2rem);
+            margin: 20px 0 18px;
+        }
+
+        .grad {
+            background: linear-gradient(90deg, var(--accent) 0%, #4f8cff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .is-online .grad {
+            background-image: linear-gradient(90deg, var(--green) 0%, #22c55e 100%);
+        }
+
+        .lead {
+            font-size: clamp(1.02rem, 2vw, 1.15rem);
+            line-height: 1.78;
+            margin: 0;
+            max-width: 520px;
+        }
+
+        .hl {
+            color: var(--ink);
+            font-weight: 600;
+            background: linear-gradient(transparent 62%, rgba(245, 158, 11, .45) 62%);
+        }
+
+        /* ---- Painel de status ---- */
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 28px;
+            padding: 14px 18px;
+            max-width: 520px;
+            border-radius: var(--radius-sm);
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ring {
+            --p: 0;
+            flex: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--accent-soft) 0);
+            transition: --p .9s linear;
+        }
+
+        .ring span {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #fff;
+            display: grid;
+            place-items: center;
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: .9rem;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .is-checking .ring { animation: spin 1s linear infinite; }
+
+        .is-online .ring { background: var(--green); }
+
+        .status strong {
+            display: block;
+            font-family: var(--font-head);
+            font-weight: 600;
+            color: var(--ink);
+            font-size: .95rem;
+        }
+
+        .status small {
+            color: var(--muted);
+            font-size: .85rem;
+        }
+
+        /* ---- Botões ---- */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 28px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: var(--font-head);
+            font-weight: 600;
+            font-size: .97rem;
+            padding: 14px 26px;
+            border-radius: 999px;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+        }
+
+        .btn svg { width: 18px; height: 18px; }
+
+        .btn--primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 18px 34px -16px rgba(23, 92, 221, .75);
+        }
+
+        .btn--primary:hover { background: var(--accent-dark); transform: translateY(-3px); }
+
+        .btn--primary[disabled] { opacity: .7; cursor: progress; transform: none; }
+
+        .btn--ghost { background: #fff; color: var(--ink); border-color: var(--line); }
+
+        .btn--ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-3px); }
+
+        .btn--green { background: var(--green); color: #fff; box-shadow: 0 18px 34px -16px rgba(22, 163, 74, .75); }
+
+        .btn--green:hover { background: #12833c; transform: translateY(-3px); }
+
+        /* =============================================================
+           ILUSTRAÇÃO
+           ============================================================= */
+        .scene {
+            position: relative;
+            border-radius: 32px;
+            background: linear-gradient(160deg, #fff 0%, var(--accent-soft) 100%);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            padding: clamp(12px, 3vw, 24px);
+        }
+
+        .scene svg { display: block; width: 100%; height: auto; }
+
+        .scene-tag {
+            position: absolute;
+            left: 22px;
+            bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            font-size: .8rem;
+            font-weight: 500;
+        }
+
+        .scene-tag b { color: var(--amber); font-weight: 700; }
+
+        .is-online .scene-tag b { color: #4ade80; }
+
+        /* animações da cena */
+        .dog-head  { transform-origin: 144px 160px; animation: tilt 3.2s ease-in-out infinite; }
+        .dog-tail  { transform-origin: 186px 214px; animation: wag 1.1s ease-in-out infinite; }
+        .dog-eyes  { transform-origin: 144px 116px; animation: blink 5s infinite; }
+        .plug      { animation: reach 2.4s ease-in-out infinite; }
+        .spark     { animation: flicker 1.2s steps(2) infinite; }
+        .spark:nth-child(2) { animation-delay: .3s; }
+        .spark:nth-child(3) { animation-delay: .6s; }
+        .bubble    { animation: float 4s ease-in-out infinite; }
+        .bubble-ok { opacity: 0; }
+
+        .is-online .dog-tail   { animation-duration: .35s; }
+        .is-online .dog-head   { animation: none; }
+        .is-online .plug       { animation: none; transform: translate(12px, -6px); transition: transform .5s cubic-bezier(.22, 1, .36, 1); }
+        .is-online .sparks     { opacity: 0; }
+        .is-online .bubble-off { opacity: 0; }
+        .is-online .bubble-ok  { opacity: 1; }
+        .is-online .brow       { transform: translateY(-3px); }
+
+        .brow, .bubble-off, .bubble-ok, .sparks { transition: opacity .3s ease, transform .3s ease; }
+
+        /* =============================================================
+           MINIJOGO
+           ============================================================= */
+        .game {
+            margin-bottom: clamp(2rem, 5vw, 3.5rem);
+            border-radius: var(--radius);
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .game-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .game-head h2 {
+            font-family: var(--font-head);
+            font-size: 1.15rem;
+            color: var(--ink);
+            margin: 4px 0 0;
+        }
+
+        .game-head p { margin: 4px 0 0; font-size: .9rem; }
+
+        .scores { display: flex; gap: 10px; }
+
+        .score {
+            min-width: 92px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            text-align: center;
+        }
+
+        .score small {
+            display: block;
+            font-family: var(--font-label);
+            font-weight: 700;
+            font-size: .68rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .score b {
+            font-family: var(--font-head);
+            font-size: 1.2rem;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .score--best b { color: var(--accent); }
+
+        .stage {
+            position: relative;
+            height: 210px;
+            cursor: pointer;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            background: linear-gradient(180deg, #fff 0%, #f7f9ff 100%);
+        }
+
+        .stage:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+        .stage canvas { display: block; width: 100%; height: 100%; }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, .72);
+            backdrop-filter: blur(2px);
+            transition: opacity .25s ease;
+        }
+
+        .overlay[hidden] { display: none; }
+
+        .overlay strong {
+            font-family: var(--font-head);
+            font-size: 1.1rem;
+            color: var(--ink);
+        }
+
+        .overlay span { font-size: .9rem; }
+
+        .kbd {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            border-bottom-width: 3px;
+            background: #fff;
+            font-family: var(--font-head);
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        /* =============================================================
+           DICAS
+           ============================================================= */
+        .tips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: clamp(2rem, 5vw, 3rem);
+        }
+
+        .tip {
+            display: flex;
+            gap: 14px;
+            padding: 18px;
+            border-radius: var(--radius-sm);
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tip i {
+            flex: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .tip i svg { width: 20px; height: 20px; }
+
+        .tip strong {
+            display: block;
+            font-family: var(--font-head);
+            font-size: .95rem;
+            color: var(--ink);
+            margin-bottom: 2px;
+        }
+
+        .tip span { font-size: .88rem; line-height: 1.55; }
+
+        footer {
+            text-align: center;
+            font-size: .82rem;
+            color: var(--muted);
+            padding: 0 16px 28px;
+        }
+
+        /* =============================================================
+           AVISO "VOLTOU"
+           ============================================================= */
+        .back {
+            position: fixed;
+            left: 50%;
+            bottom: max(20px, env(safe-area-inset-bottom));
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: max-content;
+            max-width: calc(100% - 32px);
+            padding: 10px 10px 10px 18px;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            box-shadow: 0 24px 50px -18px rgba(15, 27, 52, .6);
+            font-size: .92rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translate(-50%, 20px);
+            transition: opacity .3s ease, transform .3s cubic-bezier(.22, 1, .36, 1), visibility .3s;
+        }
+
+        .is-online .back { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+        .back strong { font-family: var(--font-head); font-weight: 600; }
+
+        .back .btn { padding: 10px 18px; font-size: .88rem; }
+
+        /* =============================================================
+           KEYFRAMES
+           ============================================================= */
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, .6); }
+            70%  { box-shadow: 0 0 0 9px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        @keyframes spin    { to { transform: rotate(360deg); } }
+        @keyframes tilt    { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(6deg); } }
+        @keyframes wag     { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(14deg); } }
+        @keyframes blink   { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+        @keyframes reach   { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(6px, -3px) rotate(-3deg); } }
+        @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes float   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        /* =============================================================
+           RESPONSIVO
+           ============================================================= */
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: minmax(0, 1fr); }
+            .scene { order: -1; max-width: 520px; width: 100%; margin-inline: auto; }
+            .tips { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 520px) {
+            .pill .pill-text { display: none; }
+            .actions .btn { flex: 1 1 100%; }
+            .stage { height: 180px; }
+            .scores { width: 100%; }
+            .score { flex: 1; }
+            .back { border-radius: 18px; flex-wrap: wrap; justify-content: center; text-align: center; padding: 14px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrap">
+
+        <!-- ================= TOPO ================= -->
+        <header class="top">
+            <span class="brand">
+                <svg viewBox="0 0 72 72" aria-hidden="true">
+                    <path fill="#175cdd" d="M36 30c-10.6 0-19 7.9-19 17.4 0 6.7 4.6 10.6 11.4 10.6 3.8 0 6-1.6 7.6-1.6s3.8 1.6 7.6 1.6c6.8 0 11.4-3.9 11.4-10.6C55 37.9 46.6 30 36 30z" />
+                    <g fill="#175cdd">
+                        <ellipse cx="16" cy="30" rx="6.6" ry="8.8" transform="rotate(-24 16 30)" />
+                        <ellipse cx="29" cy="19" rx="6.6" ry="9" transform="rotate(-8 29 19)" />
+                        <ellipse cx="43" cy="19" rx="6.6" ry="9" transform="rotate(8 43 19)" />
+                        <ellipse cx="56" cy="30" rx="6.6" ry="8.8" transform="rotate(24 56 30)" />
+                    </g>
+                </svg>
+                Mobipet
+            </span>
+            <span class="pill"><span class="dot"></span><span class="pill-text" id="pill-texto">Modo offline</span></span>
+        </header>
+
+        <!-- ================= HERO ================= -->
+        <main>
+            <section class="hero">
+
+                <div>
+                    <span class="eyebrow" id="eyebrow">Sem conexão</span>
+
+                    <h1 id="titulo">
+                        Opa! A internet
+                        <span class="grad">saiu para passear.</span>
+                    </h1>
+
+                    <p class="lead" id="texto">
+                        O Mobi já está de olho na tomada. Fique por aqui:
+                        <span class="hl">assim que a conexão voltar, levamos você de volta</span>
+                        para a página que estava abrindo — sem perder nada.
+                    </p>
+
+                    <div class="status" role="status" aria-live="polite">
+                        <div class="ring" id="ring"><span id="ring-num">10</span></div>
+                        <div>
+                            <strong id="status-titulo">Aguardando a conexão voltar…</strong>
+                            <small id="status-sub">Nova verificação automática em 10s</small>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn btn--primary" id="tentar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 12a9 9 0 1 1-2.6-6.4" />
+                                <path d="M21 3v6h-6" />
+                            </svg>
+                            Tentar agora
+                        </button>
+                        <button type="button" class="btn btn--ghost" id="voltar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M19 12H5" />
+                                <path d="M12 19l-7-7 7-7" />
+                            </svg>
+                            Página anterior
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ---------- Ilustração: Mobi e a tomada ---------- -->
+                <figure class="scene" aria-hidden="true" style="margin:0">
+                    <svg viewBox="0 0 360 280">
+                        <!-- fundo -->
+                        <circle cx="176" cy="150" r="118" fill="#eaf1fe" />
+                        <ellipse cx="180" cy="252" rx="130" ry="11" fill="#dce8fb" />
+
+                        <!-- tomada na parede -->
+                        <g>
+                            <rect x="288" y="150" width="44" height="60" rx="12" fill="#fff" stroke="#dce8fb" stroke-width="3" />
+                            <rect x="301" y="169" width="5" height="14" rx="2.5" fill="#0f1b34" />
+                            <rect x="314" y="169" width="5" height="14" rx="2.5" fill="#0f1b34" />
+                            <circle cx="310" cy="195" r="3" fill="#dce8fb" />
+                        </g>
+
+                        <!-- faíscas -->
+                        <g class="sparks" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round">
+                            <path class="spark" d="M276 168 l6 -8" />
+                            <path class="spark" d="M280 182 l9 0" />
+                            <path class="spark" d="M276 196 l6 8" />
+                        </g>
+
+                        <!-- cabo + plugue -->
+                        <path d="M0 244 C 60 244 110 250 170 247 S 232 236 246 200" fill="none" stroke="#0f1b34" stroke-width="5" stroke-linecap="round" />
+                        <g class="plug">
+                            <g transform="rotate(-18 250 190)">
+                                <rect x="238" y="176" width="28" height="26" rx="7" fill="#175cdd" />
+                                <rect x="244" y="182" width="4" height="14" rx="2" fill="#0f47b3" opacity=".6" />
+                                <rect x="266" y="181" width="11" height="4" rx="2" fill="#8794a7" />
+                                <rect x="266" y="193" width="11" height="4" rx="2" fill="#8794a7" />
+                            </g>
+                        </g>
+
+                        <!-- rabo -->
+                        <path class="dog-tail" d="M186 214 q30 -8 30 -46" fill="none" stroke="#d98f3a" stroke-width="13" stroke-linecap="round" />
+
+                        <!-- corpo -->
+                        <ellipse cx="150" cy="206" rx="48" ry="44" fill="#f2b35a" />
+                        <ellipse cx="180" cy="228" rx="26" ry="20" fill="#e9a349" />
+                        <ellipse cx="138" cy="202" rx="24" ry="30" fill="#fbe3bd" />
+                        <rect x="118" y="206" width="18" height="42" rx="9" fill="#f2b35a" />
+                        <rect x="144" y="208" width="18" height="40" rx="9" fill="#f2b35a" />
+                        <ellipse cx="127" cy="247" rx="13" ry="7" fill="#fbe3bd" />
+                        <ellipse cx="153" cy="247" rx="13" ry="7" fill="#fbe3bd" />
+
+                        <!-- coleira -->
+                        <path d="M112 168 q34 16 64 0" fill="none" stroke="#175cdd" stroke-width="9" stroke-linecap="round" />
+                        <circle cx="144" cy="183" r="7.5" fill="#f59e0b" />
+                        <circle cx="144" cy="183" r="2.5" fill="#fff" opacity=".7" />
+
+                        <!-- cabeça -->
+                        <g class="dog-head">
+                            <ellipse cx="104" cy="120" rx="15" ry="28" transform="rotate(20 104 120)" fill="#c97b2e" />
+                            <ellipse cx="184" cy="120" rx="15" ry="28" transform="rotate(-20 184 120)" fill="#c97b2e" />
+                            <ellipse cx="144" cy="122" rx="46" ry="42" fill="#f2b35a" />
+                            <ellipse cx="144" cy="98" rx="14" ry="10" fill="#f6c77e" />
+                            <ellipse cx="144" cy="142" rx="26" ry="19" fill="#fbe3bd" />
+
+                            <g class="brow" stroke="#c97b2e" stroke-width="3.5" stroke-linecap="round" fill="none">
+                                <path d="M116 104 q8 -7 17 -3" />
+                                <path d="M155 101 q9 -4 17 3" />
+                            </g>
+
+                            <g class="dog-eyes">
+                                <circle cx="126" cy="116" r="6.5" fill="#0f1b34" />
+                                <circle cx="162" cy="116" r="6.5" fill="#0f1b34" />
+                                <circle cx="128.5" cy="113.5" r="2.2" fill="#fff" />
+                                <circle cx="164.5" cy="113.5" r="2.2" fill="#fff" />
+                            </g>
+
+                            <ellipse cx="144" cy="133" rx="9" ry="6.5" fill="#0f1b34" />
+                            <ellipse cx="141" cy="131" rx="2.8" ry="1.6" fill="#fff" opacity=".6" />
+                            <path d="M144 139 v7 M133 146 q5.5 5 11 0 q5.5 5 11 0" fill="none" stroke="#0f1b34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                            <ellipse cx="114" cy="136" rx="6" ry="3.5" fill="#f59e0b" opacity=".35" />
+                            <ellipse cx="174" cy="136" rx="6" ry="3.5" fill="#f59e0b" opacity=".35" />
+                        </g>
+
+                        <!-- balão de pensamento -->
+                        <g class="bubble">
+                            <circle cx="200" cy="88" r="5" fill="#fff" stroke="#dce8fb" stroke-width="2.5" />
+                            <circle cx="215" cy="70" r="8" fill="#fff" stroke="#dce8fb" stroke-width="2.5" />
+                            <circle cx="254" cy="44" r="31" fill="#fff" stroke="#dce8fb" stroke-width="3" />
+
+                            <!-- sem wi-fi -->
+                            <g class="bubble-off" fill="none" stroke-linecap="round">
+                                <path d="M234 42 q20 -17 40 0" stroke="#0f1b34" stroke-width="4" />
+                                <path d="M241 50 q13 -11 26 0" stroke="#0f1b34" stroke-width="4" />
+                                <circle cx="254" cy="59" r="3.5" fill="#0f1b34" stroke="none" />
+                                <path d="M238 27 l32 34" stroke="#f59e0b" stroke-width="4.5" />
+                            </g>
+
+                            <!-- conectado -->
+                            <path class="bubble-ok" d="M240 45 l9 9 l18 -19" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+                    </svg>
+
+                    <span class="scene-tag">Status da rede: <b id="tag-texto">desconectada</b></span>
+                </figure>
+            </section>
+
+            <!-- ================= MINIJOGO ================= -->
+            <section class="game" aria-labelledby="game-title">
+                <div class="game-head">
+                    <div>
+                        <span class="eyebrow">Enquanto isso…</span>
+                        <h2 id="game-title">Pula, Mobi!</h2>
+                        <p>Ajude o Mobi a pular os hidrantes e baldes e pegue os ossinhos pelo caminho.</p>
+                    </div>
+                    <div class="scores">
+                        <div class="score"><small>Pontos</small><b id="pontos">0</b></div>
+                        <div class="score score--best"><small>Recorde</small><b id="recorde">0</b></div>
+                    </div>
+                </div>
+
+                <div class="stage" id="stage" tabindex="0" role="button"
+                    aria-label="Minijogo Pula, Mobi. Toque ou pressione espaço para pular.">
+                    <canvas id="jogo"></canvas>
+                    <div class="overlay" id="overlay">
+                        <strong id="overlay-titulo">Toque para jogar</strong>
+                        <span id="overlay-texto">ou aperte <span class="kbd">Espaço</span> / <span class="kbd">↑</span> para pular</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= DICAS ================= -->
+            <section class="tips" aria-label="Dicas para recuperar a conexão">
+                <div class="tip">
+                    <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0" /><path d="M8.5 16a5 5 0 0 1 7 0" /><path d="M2 9a15 15 0 0 1 20 0" /><circle cx="12" cy="19.5" r=".8" fill="currentColor" /></svg></i>
+                    <div><strong>Wi-Fi ou dados móveis</strong><span>Confira se estão ligados e com sinal.</span></div>
+                </div>
+                <div class="tip">
+                    <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" /></svg></i>
+                    <div><strong>Modo avião</strong><span>Verifique se ele não foi ativado sem querer.</span></div>
+                </div>
+                <div class="tip">
+                    <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="7" rx="2" /><path d="M7 16.5h.01M11 16.5h.01" /><path d="M8 9a5.5 5.5 0 0 1 8 0" /><path d="M5 6a10 10 0 0 1 14 0" /></svg></i>
+                    <div><strong>Roteador</strong><span>Se nada abrir, desligue por 10 segundos e ligue de novo.</span></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer>Mobipet · cuidando do seu pet mesmo quando a internet falha</footer>
+
+    <!-- Aviso de conexão restabelecida -->
+    <div class="back" role="alert">
+        <span><strong>Conexão de volta!</strong> <span id="back-texto">Levando você de volta…</span></span>
+        <button type="button" class="btn btn--green" id="continuar">Voltar ao site</button>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var body = document.body;
+
+            /* ==============================================================
+               CONEXÃO
+               ============================================================== */
+            var INTERVALO = 10;           // segundos entre verificações automáticas
+            var restante = INTERVALO;
+            var tentativas = 0;
+            var verificando = false;
+            var online = false;
+
+            var el = function (id) { return document.getElementById(id); };
+            var btnTentar = el('tentar');
+            var ring = el('ring');
+
+            function atualizarContagem() {
+                el('ring-num').textContent = restante;
+                ring.style.setProperty('--p', ((INTERVALO - restante) / INTERVALO) * 100);
+                el('status-sub').textContent = tentativas
+                    ? 'Tentativa nº ' + tentativas + ' · próxima em ' + restante + 's'
+                    : 'Nova verificação automática em ' + restante + 's';
+            }
+
+            // navigator.onLine sozinho não é confiável: confirma batendo no servidor.
+            function servidorResponde() {
+                return fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+                    .then(function () { return true; })
+                    .catch(function () { return false; });
+            }
+
+            function verificar(manual) {
+                if (verificando || online) return;
+                verificando = true;
+                tentativas++;
+                body.classList.add('is-checking');
+                btnTentar.disabled = true;
+                el('status-titulo').textContent = 'Farejando a conexão…';
+
+                servidorResponde().then(function (ok) {
+                    verificando = false;
+                    body.classList.remove('is-checking');
+                    btnTentar.disabled = false;
+
+                    if (ok) return conexaoVoltou();
+
+                    restante = INTERVALO;
+                    el('status-titulo').textContent = manual
+                        ? 'Ainda sem conexão. O Mobi continua de olho!'
+                        : 'Aguardando a conexão voltar…';
+                    atualizarContagem();
+                });
+            }
+
+            var redirecionar = null;
+
+            function conexaoVoltou() {
+                online = true;
+                body.classList.add('is-online');
+                el('pill-texto').textContent = 'Conectado';
+                el('eyebrow').textContent = 'Conectado';
+                el('tag-texto').textContent = 'conectada';
+                el('titulo').innerHTML = 'Eba! A internet <span class="grad">voltou do passeio.</span>';
+                el('texto').innerHTML = 'O Mobi ligou tudo de novo. <span class="hl">Você já pode voltar para o Mobipet</span> e continuar de onde parou.';
+                btnTentar.style.display = 'none';
+                el('status-titulo').textContent = 'Conexão restabelecida!';
+                el('ring-num').textContent = '✓';
+                ring.style.setProperty('--p', 100);
+
+                // Se estiver jogando, não interrompe: só oferece o botão.
+                if (jogo.rodando) {
+                    el('back-texto').textContent = 'Termine a partida e volte quando quiser.';
+                    el('status-sub').textContent = 'Clique em "Voltar ao site" quando quiser continuar.';
+                    return;
+                }
+
+                var s = 3;
+                var tick = function () {
+                    el('back-texto').textContent = 'Levando você de volta em ' + s + 's…';
+                    el('status-sub').textContent = 'Recarregando a página em ' + s + 's…';
+                    if (s-- <= 0) return window.location.reload();
+                    redirecionar = setTimeout(tick, 1000);
+                };
+                tick();
+            }
+
+            el('continuar').addEventListener('click', function () { window.location.reload(); });
+            btnTentar.addEventListener('click', function () { verificar(true); });
+            el('voltar').addEventListener('click', function () {
+                if (window.history.length > 1) window.history.back();
+                else verificar(true);
+            });
+
+            window.addEventListener('online', function () { verificar(false); });
+
+            setInterval(function () {
+                if (online || verificando || document.hidden) return;
+                restante--;
+                if (restante <= 0) { restante = 0; atualizarContagem(); verificar(false); return; }
+                atualizarContagem();
+            }, 1000);
+
+            atualizarContagem();
+
+            /* ==============================================================
+               MINIJOGO — PULA, MOBI!
+               ============================================================== */
+            var cv = el('jogo');
+            var ctx = cv.getContext('2d');
+            var stage = el('stage');
+            var overlay = el('overlay');
+
+            var COR = {
+                pelo: '#f2b35a', peloEscuro: '#c97b2e', claro: '#fbe3bd',
+                ink: '#0f1b34', accent: '#175cdd', accentDark: '#0f47b3',
+                soft: '#dce8fb', softer: '#eaf1fe', linha: '#e6ecf5', osso: '#f4d9a8', amber: '#f59e0b'
+            };
+
+            var W = 0, H = 0;
+            var GRAVIDADE = 2200, PULO = 760;
+
+            var jogo = {
+                rodando: false, fim: false,
+                dog: { x: 56, y: 0, vy: 0 },
+                obstaculos: [], ossos: [], nuvens: [],
+                vel: 340, dist: 0, bonus: 0, prox: 400, proxOsso: 900, t: 0
+            };
+
+            var recorde = 0;
+            try { recorde = parseInt(localStorage.getItem('mobipet-recorde') || '0', 10) || 0; } catch (e) {}
+            el('recorde').textContent = recorde;
+
+            function redimensionar() {
+                var dpr = Math.min(window.devicePixelRatio || 1, 2);
+                var r = stage.getBoundingClientRect();
+                W = r.width; H = r.height;
+                cv.width = Math.round(W * dpr);
+                cv.height = Math.round(H * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                if (!jogo.nuvens.length) {
+                    for (var i = 0; i < 4; i++) jogo.nuvens.push({ x: Math.random() * W, y: 20 + Math.random() * 50, s: .6 + Math.random() * .6 });
+                }
+                desenhar();
+            }
+
+            function chao() { return H - 30; }
+
+            function reiniciar() {
+                jogo.dog.y = 0; jogo.dog.vy = 0;
+                jogo.obstaculos = []; jogo.ossos = [];
+                jogo.vel = 340; jogo.dist = 0; jogo.bonus = 0;
+                jogo.prox = 300; jogo.proxOsso = 700; jogo.t = 0;
+                jogo.fim = false;
+            }
+
+            function acao() {
+                if (jogo.fim || !jogo.rodando) {
+                    reiniciar();
+                    jogo.rodando = true;
+                    overlay.hidden = true;
+                    ultimo = performance.now();
+                    requestAnimationFrame(loop);
+                }
+                if (jogo.dog.y === 0) jogo.dog.vy = PULO;
+            }
+
+            stage.addEventListener('pointerdown', function (e) { e.preventDefault(); stage.focus({ preventScroll: true }); acao(); });
+            document.addEventListener('keydown', function (e) {
+                if (e.code !== 'Space' && e.code !== 'ArrowUp') return;
+                var alvo = document.activeElement;
+                if (alvo && alvo.tagName === 'BUTTON') return;
+                e.preventDefault();
+                acao();
+            });
+
+            function pontos() { return Math.floor(jogo.dist / 12) + jogo.bonus; }
+
+            function fimDeJogo() {
+                jogo.fim = true;
+                jogo.rodando = false;
+                var p = pontos();
+                var novo = p > recorde;
+                if (novo) {
+                    recorde = p;
+                    el('recorde').textContent = recorde;
+                    try { localStorage.setItem('mobipet-recorde', String(recorde)); } catch (e) {}
+                }
+                el('overlay-titulo').textContent = novo ? 'Novo recorde: ' + p + ' pontos! 🏆' : 'Ops! O Mobi tropeçou.';
+                el('overlay-texto').textContent = online ? 'A internet voltou — use o botão abaixo para continuar.' : 'Toque ou aperte espaço para tentar de novo.';
+                overlay.hidden = false;
+                if (online) el('back-texto').textContent = 'Pode voltar ao site quando quiser.';
+            }
+
+            function colide(a, b) {
+                return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+            }
+
+            function atualizar(dt) {
+                var d = jogo.dog;
+                jogo.t += dt;
+                jogo.vel = Math.min(340 + jogo.t * 9, 720);
+                jogo.dist += jogo.vel * dt;
+
+                // física do pulo
+                if (d.y > 0 || d.vy > 0) {
+                    d.vy -= GRAVIDADE * dt;
+                    d.y += d.vy * dt;
+                    if (d.y <= 0) { d.y = 0; d.vy = 0; }
+                }
+
+                // novos obstáculos
+                jogo.prox -= jogo.vel * dt;
+                if (jogo.prox <= 0) {
+                    var hidrante = Math.random() < .55;
+                    jogo.obstaculos.push(hidrante ? { tipo: 'h', x: W + 20, w: 22, h: 38 } : { tipo: 'b', x: W + 20, w: 28, h: 26 });
+                    jogo.prox = 260 + Math.random() * 320 + jogo.vel * .35;
+                }
+
+                // novos ossinhos
+                jogo.proxOsso -= jogo.vel * dt;
+                if (jogo.proxOsso <= 0) {
+                    jogo.ossos.push({ x: W + 20, y: 62 + Math.random() * 34, w: 26, h: 12 });
+                    jogo.proxOsso = 700 + Math.random() * 900;
+                }
+
+                var g = chao();
+                var caixaDog = { x: d.x + 8, y: g - d.y - 40, w: 50, h: 36 };
+
+                jogo.obstaculos.forEach(function (o) { o.x -= jogo.vel * dt; });
+                jogo.obstaculos = jogo.obstaculos.filter(function (o) { return o.x + o.w > -20; });
+
+                jogo.ossos.forEach(function (o) { o.x -= jogo.vel * dt; });
+                jogo.ossos = jogo.ossos.filter(function (o) {
+                    if (colide(caixaDog, { x: o.x, y: g - o.y, w: o.w, h: o.h })) { jogo.bonus += 10; return false; }
+                    return o.x + o.w > -20;
+                });
+
+                jogo.nuvens.forEach(function (n) {
+                    n.x -= jogo.vel * .12 * dt * n.s;
+                    if (n.x < -80) { n.x = W + 40; n.y = 20 + Math.random() * 50; }
+                });
+
+                for (var i = 0; i < jogo.obstaculos.length; i++) {
+                    var o = jogo.obstaculos[i];
+                    if (colide(caixaDog, { x: o.x + 3, y: g - o.h + 3, w: o.w - 6, h: o.h - 3 })) return fimDeJogo();
+                }
+
+                el('pontos').textContent = pontos();
+            }
+
+            /* ---------- desenho ---------- */
+            function rr(x, y, w, h, r) {
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.arcTo(x + w, y, x + w, y + h, r);
+                ctx.arcTo(x + w, y + h, x, y + h, r);
+                ctx.arcTo(x, y + h, x, y, r);
+                ctx.arcTo(x, y, x + w, y, r);
+                ctx.closePath();
+            }
+
+            function elipse(x, y, rx, ry, cor, rot) {
+                ctx.beginPath();
+                ctx.ellipse(x, y, rx, ry, rot || 0, 0, Math.PI * 2);
+                ctx.fillStyle = cor;
+                ctx.fill();
+            }
+
+            function desenharDog(x, base, t, noAr) {
+                var passo = noAr ? 0 : Math.sin(t * 22) * 4;
+                var abana = Math.sin(t * 18) * 5;
+
+                // rabo
+                ctx.strokeStyle = '#d98f3a';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(x + 6, base - 30);
+                ctx.quadraticCurveTo(x - 6, base - 34, x - 8, base - 46 + abana);
+                ctx.stroke();
+
+                // patas (trás e frente alternando)
+                ctx.fillStyle = COR.peloEscuro;
+                rr(x + 8, base - 16 + passo, 7, 16 - passo, 3.5); ctx.fill();
+                rr(x + 34, base - 16 - passo, 7, 16 + passo, 3.5); ctx.fill();
+                ctx.fillStyle = COR.pelo;
+                rr(x + 14, base - 16 - passo, 7, 16 + passo, 3.5); ctx.fill();
+                rr(x + 40, base - 16 + passo, 7, 16 - passo, 3.5); ctx.fill();
+
+                // corpo
+                ctx.fillStyle = COR.pelo;
+                rr(x + 2, base - 36, 46, 24, 12); ctx.fill();
+                elipse(x + 30, base - 20, 12, 7, COR.claro);
+
+                // coleira
+                ctx.fillStyle = COR.accent;
+                rr(x + 42, base - 38, 5, 16, 2.5); ctx.fill();
+                elipse(x + 45, base - 20, 3, 3, COR.amber);
+
+                // cabeça
+                elipse(x + 54, base - 42, 13, 12, COR.pelo);
+                elipse(x + 65, base - 38, 8, 6, COR.claro);
+                elipse(x + 71, base - 40, 3, 2.4, COR.ink);
+                elipse(x + 57, base - 46, 2.3, 2.3, COR.ink);
+                elipse(x + 46, base - 42, 5, 10, COR.peloEscuro, noAr ? -0.9 : 0.25);
+            }
+
+            function desenharHidrante(x, g) {
+                ctx.fillStyle = COR.accent;
+                rr(x + 3, g - 32, 16, 32, 4); ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x + 11, g - 32, 8, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = COR.accentDark;
+                rr(x, g - 24, 22, 6, 3); ctx.fill();
+                rr(x + 1, g - 5, 20, 5, 2); ctx.fill();
+                elipse(x + 11, g - 42, 3, 2.5, COR.accentDark);
+            }
+
+            function desenharBalde(x, g) {
+                ctx.fillStyle = COR.ink;
+                ctx.beginPath();
+                ctx.moveTo(x, g - 24);
+                ctx.lineTo(x + 28, g - 24);
+                ctx.lineTo(x + 24, g);
+                ctx.lineTo(x + 4, g);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#7fb0ff';
+                rr(x + 2, g - 26, 24, 5, 2.5); ctx.fill();
+                ctx.strokeStyle = COR.ink;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x + 14, g - 24, 11, Math.PI * 1.1, Math.PI * 1.9);
+                ctx.stroke();
+            }
+
+            function desenharOsso(x, y) {
+                ctx.fillStyle = COR.osso;
+                rr(x + 5, y + 3, 16, 6, 3); ctx.fill();
+                [[x + 4, y + 3], [x + 4, y + 9], [x + 22, y + 3], [x + 22, y + 9]].forEach(function (p) {
+                    elipse(p[0], p[1], 4, 4, COR.osso);
+                });
+            }
+
+            function desenhar() {
+                if (!W) return;
+                ctx.clearRect(0, 0, W, H);
+                var g = chao();
+
+                // nuvens
+                jogo.nuvens.forEach(function (n) {
+                    elipse(n.x, n.y, 26 * n.s, 10 * n.s, COR.softer);
+                    elipse(n.x + 16 * n.s, n.y - 6 * n.s, 16 * n.s, 10 * n.s, COR.softer);
+                });
+
+                // chão
+                ctx.strokeStyle = COR.soft;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, g + 0.5);
+                ctx.lineTo(W, g + 0.5);
+                ctx.stroke();
+
+                var off = jogo.dist % 60;
+                ctx.fillStyle = COR.linha;
+                for (var x = -off; x < W; x += 60) {
+                    rr(x, g + 10, 14, 3, 1.5); ctx.fill();
+                    rr(x + 34, g + 18, 8, 3, 1.5); ctx.fill();
+                }
+
+                jogo.ossos.forEach(function (o) { desenharOsso(o.x, g - o.y); });
+                jogo.obstaculos.forEach(function (o) { o.tipo === 'h' ? desenharHidrante(o.x, g) : desenharBalde(o.x, g); });
+
+                // sombra + Mobi
+                var d = jogo.dog;
+                elipse(d.x + 28, g + 2, Math.max(10, 26 - d.y / 8), 4, 'rgba(15, 27, 52, .08)');
+                desenharDog(d.x, g - d.y, jogo.rodando ? jogo.t : 0, d.y > 0);
+            }
+
+            var ultimo = 0;
+            function loop(agora) {
+                if (!jogo.rodando) { desenhar(); return; }
+                var dt = Math.min((agora - ultimo) / 1000, 0.033);
+                ultimo = agora;
+                if (!document.hidden) atualizar(dt);
+                desenhar();
+                if (jogo.rodando) requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', redimensionar);
+            redimensionar();
+        })();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,520 @@
+/* =====================================================================
+   MOBIPET — Acessibilidade (global)
+   Carregado em todas as páginas via partials/favicon.blade.php.
+   O widget é montado por assets/js/acessibilidade.js e as preferências
+   ficam nas classes do <html>:
+     .a11y-contraste  → alto contraste (fundo preto, texto amarelo)
+     .a11y-links      → links destacados
+     [data-a11y-fs]   → tamanho do texto (--a11y-fs = 0.9 … 1.5)
+   ===================================================================== */
+
+/* ===================== TAMANHO DO TEXTO ===================== */
+/* rem/em seguem o font-size do <html>; os font-size em px são
+   reescritos pelo JS para calc(px * var(--a11y-fs)). */
+html[data-a11y-fs] {
+    font-size: calc(100% * var(--a11y-fs, 1)) !important;
+}
+
+/* ===================== WIDGET ===================== */
+.a11y-widget {
+    --a11y-accent: #175cdd;
+    --a11y-accent-dark: #0f47b3;
+    --a11y-accent-soft: #eaf1fe;
+    --a11y-ink: #0f1b34;
+    --a11y-body: #4a5568;
+    --a11y-muted: #8794a7;
+    --a11y-line: #e6ecf5;
+    --a11y-bg: #f7f9ff;
+    --a11y-danger: #dc2626;
+    position: fixed;
+    top: max(12px, calc(50% - 140px));
+    right: 12px;
+    z-index: 2147483000;
+    font-family: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--a11y-body);
+}
+
+.a11y-widget *,
+.a11y-widget *::before,
+.a11y-widget *::after {
+    box-sizing: border-box;
+}
+
+.a11y-widget svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.a11y-widget svg .a11y-fill {
+    fill: currentColor;
+    stroke: none;
+}
+
+.a11y-widget button {
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.a11y-widget button:focus-visible {
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+/* ---------- Botão principal ---------- */
+.a11y-fab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    background: var(--a11y-accent);
+    color: #fff;
+    box-shadow: 0 12px 28px -12px rgba(23, 92, 221, .75);
+    transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.a11y-fab svg {
+    width: 28px;
+    height: 28px;
+}
+
+.a11y-fab:hover,
+.a11y-fab[aria-expanded="true"] {
+    background: var(--a11y-accent-dark);
+    transform: translateY(-2px);
+}
+
+/* Bolinha indicando que há alguma preferência ativa */
+.a11y-fab::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f59e0b;
+    border: 2px solid #fff;
+    transform: scale(0);
+    transition: transform .2s ease;
+}
+
+.a11y-widget.is-custom .a11y-fab::after {
+    transform: scale(1);
+}
+
+/* ---------- Atalho "Parar leitura" (aparece enquanto fala) ---------- */
+.a11y-stop-float {
+    position: absolute;
+    top: 4px;
+    right: calc(100% + 10px);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 16px 0 12px;
+    border: 0;
+    border-radius: 50px;
+    background: var(--a11y-danger);
+    color: #fff;
+    font-family: "Montserrat", sans-serif !important;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    box-shadow: 0 12px 28px -12px rgba(220, 38, 38, .8);
+    animation: a11y-pulse 1.6s ease-in-out infinite;
+}
+
+.a11y-widget.is-speaking:not(.is-open) .a11y-stop-float {
+    display: inline-flex;
+}
+
+@keyframes a11y-pulse {
+    50% {
+        box-shadow: 0 0 0 8px rgba(220, 38, 38, .18);
+    }
+}
+
+/* ---------- Dropdown ---------- */
+.a11y-panel {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 12px);
+    width: 304px;
+    max-width: calc(100vw - 84px);
+    max-height: calc(50vh + 120px);
+    overflow-y: auto;
+    padding: 18px;
+    border-radius: 24px;
+    background: #fff;
+    border: 1px solid var(--a11y-line);
+    box-shadow: 0 40px 90px -40px rgba(15, 27, 52, .55);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-12px);
+    transform-origin: top right;
+    transition: opacity .2s ease, transform .2s ease, visibility .2s;
+}
+
+.a11y-widget.is-open .a11y-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.a11y-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.a11y-title {
+    margin: 0;
+    font-family: "Montserrat", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--a11y-ink);
+}
+
+.a11y-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--a11y-line);
+    border-radius: 10px;
+    background: var(--a11y-bg);
+    color: var(--a11y-body);
+}
+
+.a11y-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+.a11y-label {
+    display: block;
+    margin: 0 0 8px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--a11y-muted);
+}
+
+/* ---------- Tamanho do texto ---------- */
+.a11y-size {
+    display: grid;
+    grid-template-columns: 52px 1fr 52px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--a11y-bg);
+    border: 1px solid var(--a11y-line);
+}
+
+.a11y-size button {
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--a11y-line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--a11y-accent);
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.a11y-size button:first-child {
+    font-size: 14px;
+}
+
+.a11y-size button:hover:not(:disabled) {
+    background: var(--a11y-accent);
+    border-color: var(--a11y-accent);
+    color: #fff;
+}
+
+.a11y-size button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.a11y-size output {
+    text-align: center;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--a11y-ink);
+}
+
+/* ---------- Opções ---------- */
+.a11y-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.a11y-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    min-height: 88px;
+    padding: 12px;
+    border: 1px solid var(--a11y-line);
+    border-radius: 14px;
+    background: var(--a11y-bg);
+    color: var(--a11y-ink);
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.25;
+    text-align: left;
+    transition: transform .2s ease, border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.a11y-tile svg {
+    width: 26px;
+    height: 26px;
+    color: var(--a11y-accent);
+}
+
+.a11y-tile:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: var(--a11y-accent);
+}
+
+.a11y-tile[aria-pressed="true"] {
+    background: var(--a11y-accent);
+    border-color: var(--a11y-accent);
+    color: #fff;
+}
+
+.a11y-tile[aria-pressed="true"] svg {
+    color: #fff;
+}
+
+.a11y-tile:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.a11y-hint {
+    display: none;
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--a11y-accent-soft);
+    color: var(--a11y-accent-dark);
+    font-size: 13px;
+}
+
+.a11y-widget.is-reader .a11y-hint {
+    display: block;
+}
+
+.a11y-stop {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 44px;
+    margin-top: 10px;
+    border: 0;
+    border-radius: 50px;
+    background: var(--a11y-danger);
+    color: #fff;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.a11y-widget.is-speaking .a11y-stop {
+    display: flex;
+}
+
+.a11y-reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 42px;
+    margin-top: 14px;
+    border: 1px solid var(--a11y-line);
+    border-radius: 50px;
+    background: #fff;
+    color: var(--a11y-body);
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    transition: border-color .2s ease, color .2s ease;
+}
+
+.a11y-reset svg {
+    width: 18px;
+    height: 18px;
+}
+
+.a11y-reset:hover {
+    border-color: var(--a11y-accent);
+    color: var(--a11y-accent);
+}
+
+.a11y-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ---------- Leitor: trecho sendo lido / alvo do clique ---------- */
+.a11y-lendo {
+    outline: 3px solid #f59e0b !important;
+    outline-offset: 3px !important;
+    border-radius: 4px;
+}
+
+html.a11y-leitor body :where(p, h1, h2, h3, h4, h5, h6, li, td, th, dt, dd, label, blockquote, figcaption):hover {
+    cursor: pointer;
+}
+
+/* ===================== DESTACAR LINKS ===================== */
+html.a11y-links body a:not(.a11y-widget a) {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 3px !important;
+    outline: 2px dashed currentColor !important;
+    outline-offset: 2px !important;
+}
+
+/* ===================== ALTO CONTRASTE ===================== */
+html.a11y-contraste {
+    background: #000 !important;
+    color-scheme: dark;
+}
+
+/* :where() mantém a especificidade baixa: as regras abaixo desta
+   conseguem ajustar casos pontuais. Imagens, vídeos, SVGs, o VLibras e
+   o preloader ficam de fora. */
+html.a11y-contraste :where(body, body *):not(:where(img, picture, video, iframe, canvas, svg, svg *, [vw], [vw] *, #mp-loader, #mp-loader *)) {
+    background-color: #000 !important;
+    background-image: none !important;
+    color: #ffe600 !important;
+    -webkit-text-fill-color: currentColor !important;
+    border-color: #ffe600 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+html.a11y-contraste :where(body *):not(:where([vw] *, #mp-loader *))::before,
+html.a11y-contraste :where(body *):not(:where([vw] *, #mp-loader *))::after {
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #ffe600 !important;
+    border-color: #ffe600 !important;
+    box-shadow: none !important;
+}
+
+html.a11y-contraste body :is(h1, h2, h3, h4, h5, h6),
+html.a11y-contraste body :is(h1, h2, h3, h4, h5, h6) * {
+    color: #fff !important;
+}
+
+html.a11y-contraste body a,
+html.a11y-contraste body a * {
+    color: #5ff4ff !important;
+}
+
+html.a11y-contraste body a {
+    text-decoration: underline !important;
+}
+
+html.a11y-contraste body :is(button, .btn, [role="button"], input[type="submit"], input[type="button"]) {
+    border: 2px solid #ffe600 !important;
+}
+
+html.a11y-contraste body :is(input, select, textarea) {
+    color: #fff !important;
+    border: 2px solid #ffe600 !important;
+}
+
+html.a11y-contraste body ::placeholder {
+    color: #d6d6d6 !important;
+    -webkit-text-fill-color: #d6d6d6 !important;
+    opacity: 1 !important;
+}
+
+html.a11y-contraste body :focus-visible {
+    outline: 3px solid #5ff4ff !important;
+    outline-offset: 2px !important;
+}
+
+html.a11y-contraste body ::selection {
+    background: #ffe600 !important;
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+}
+
+/* Widget no alto contraste: opção ativa = amarelo cheio com texto preto */
+html.a11y-contraste body .a11y-widget .a11y-panel,
+html.a11y-contraste body .a11y-widget .a11y-fab {
+    border: 2px solid #ffe600 !important;
+}
+
+html.a11y-contraste body .a11y-widget .a11y-tile[aria-pressed="true"],
+html.a11y-contraste body .a11y-widget .a11y-tile[aria-pressed="true"] *,
+html.a11y-contraste body .a11y-widget :is(.a11y-stop, .a11y-stop-float),
+html.a11y-contraste body .a11y-widget :is(.a11y-stop, .a11y-stop-float) * {
+    background-color: #ffe600 !important;
+    color: #000 !important;
+}
+
+html.a11y-contraste body .a11y-widget .a11y-fab::after {
+    background-color: #ffe600 !important;
+    border-color: #000 !important;
+}
+
+/* ===================== RESPONSIVO / IMPRESSÃO ===================== */
+@media (max-width: 575px) {
+    .a11y-fab {
+        width: 44px;
+        height: 44px;
+    }
+
+    .a11y-panel {
+        max-width: calc(100vw - 80px);
+        padding: 14px;
+    }
+}
+
+@media print {
+    .a11y-widget {
+        display: none !important;
+    }
+}

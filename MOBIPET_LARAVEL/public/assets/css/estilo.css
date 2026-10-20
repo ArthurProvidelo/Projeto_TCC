@@ -1,0 +1,1570 @@
+/* Troca a fonte do menu (Lato, do template) por Montserrat — já carregada
+   via Google Fonts em todas as páginas (usada nos títulos) e aplicada aqui
+   através da custom property --nav-font que o main.css já usa em todo o
+   menu, então um único override cobre o menu desktop e o mobile juntos. */
+:root {
+    --nav-font: "Montserrat", sans-serif;
+}
+
+.sitename{
+    width: 400px !important;
+}
+
+.img-logo{
+    width: 50px;
+    height: 50px;
+}
+
+.footer-bottom{
+    background-color: #497baf !important;
+}
+
+.gemini{
+    width: 800px;
+    height: 400px;
+    border-radius: 5px;
+}
+
+.topbar{
+    background-color: #497baf !important;
+}
+
+
+.card-informacao{
+    margin-left: 30px !important;
+}
+
+.btn-primary{
+    border-radius: 25px !important;
+}
+
+.banner-funcionamento {
+    background: linear-gradient(90deg, #3061cb 0%, #031437 100%) !important;
+    border-radius: 20px !important;
+    padding: 40px !important;
+    color: white !important;
+    font-family: sans-serif;
+}
+
+.banner-funcionamento h3 {
+    color: white;
+    margin-top: 0;
+    font-size: 24px;
+}
+
+.emergency-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: white !important;
+    color: #0151fe !important;
+    padding: 12px 25px !important;
+    border-radius: 50px !important;
+    text-decoration: none !important;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.emergency-btn i {
+   font-size: 1.2rem;
+}
+
+.img-pet {
+     width: 800 !important;
+    height: 500 !important;
+}
+
+.pets-deitados{
+    margin-left: 60px !important;
+    border-radius: 20px !important;
+}
+
+.banho_servicos{
+    width: 500px !important;
+    height: 250px !important;
+}
+
+.hidratacao_servicos{
+    width: 500px !important;
+    height: 250px !important;
+}
+
+.secagem_servicos{
+    width: 500px !important;
+    height: 250px !important;
+}
+
+.escova{
+    width: 500px !important;
+    height: 250px !important;
+}
+.limpeza{
+    width: 500px !important;
+    height: 250px !important;
+}
+
+.corte{
+    width: 500px !important;
+    height: 250px !important;
+}
+
+.active{
+    color: #497baf !important;
+}
+
+.booking-wrapper {
+    background: #fff !important;
+    padding: 40px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08) !important;
+}
+
+.appointment-form h4 {
+    font-weight: 700 !important ;
+    color: #1f2937 !important; 
+}
+
+/* Campos padrão do site — NÃO se aplica às telas com o design system .pt-page,
+   que trazem o próprio estilo de formulário. A transição é limitada a
+   propriedades que não causam reflow, para o foco/hover ficar suave. */
+.form-control:not(.pt-page .form-control),
+.form-select:not(.pt-page .form-select) {
+    height: 52px !important;
+    border-radius: 12px !important;
+    border: 1px solid #dcdcdc !important;
+    padding: 10px 15px !important;
+    transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease !important;
+}
+
+textarea.form-control:not(.pt-page textarea.form-control) {
+    height: auto !important;
+}
+
+.form-control:not(.pt-page .form-control):focus,
+.form-select:not(.pt-page .form-select):focus {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, .15) !important;
+}
+
+.btn-book {
+    background: #0d6efd !important;
+    border: none !important;
+    color: white !important;
+    height: 55px !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    transition: 0.3s !important;
+}
+
+.btn-book:hover {
+    background: #0b5ed7 !important;
+    transform: translateY(-2px) !important;
+}
+
+.lead{
+    font-family: 'Roboto', sans-serif !important;
+}
+
+/* Failsafe: se por algum motivo o AOS não rodar, o conteúdo não pode ficar
+   invisível. O main.js adiciona .no-aos ao <html> quando a lib falta. */
+.no-aos [data-aos] {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE GLOBAL — Mobipet
+   Regras aplicadas a todas as páginas (o arquivo é carregado em todo o site).
+   Objetivo: nenhuma tela rolar na horizontal e nenhuma mídia/box estourar
+   a largura no celular, sem alterar o layout desktop.
+   ========================================================================== */
+
+/* 1. Nunca permitir rolagem horizontal da página inteira.
+   overflow-x: clip (e não hidden) evita quebrar position: sticky. */
+html,
+body {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+/* 2. Mídia fluida por padrão */
+img,
+svg,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 3. Deixar os filhos de flex/grid encolherem (evita estouro de largura) */
+.container,
+.container-fluid,
+.row > [class^="col-"],
+.row > [class*=" col-"] {
+    min-width: 0;
+}
+
+/* 4. A marca do cabeçalho não pode ter largura fixa (estava 400px) */
+.sitename {
+    width: auto !important;
+    max-width: 62vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Logo oficial no cabeçalho (sem o nome escrito). O PNG tem bastante margem
+   transparente em volta do escudo (ele ocupa ~57% da imagem), então a imagem
+   é ampliada com transform: aumenta o escudo sem mudar a altura do cabeçalho.
+   O transform-origin à esquerda mantém o escudo alinhado com o container. */
+.header .logo {
+    position: relative;
+}
+
+.header .logo .logo-marca {
+    width: 52px;
+    height: 52px;
+    max-height: none;
+    margin: 0;
+    flex-shrink: 0;
+    object-fit: contain;
+    transform: scale(1.55);
+    transform-origin: 30% 50%;
+    transition: transform .25s ease, filter .25s ease;
+}
+
+/* Saudação ao passar o mouse: UM pulo só, coreografado — escudo, a
+   sombra embaixo dele, a marca "MobiPet" inteira e a patinha que aparece
+   em cima sobem e aterrissam juntos, todos com a mesma duração (.7s) e a
+   mesma curva "elástica", em vez de cada peça se mexer no seu próprio
+   tempo. Corre uma vez só ao entrar o hover — sem loop, sem distrair. */
+.header .logo:hover .logo-marca {
+    animation: mp-jump-icon .7s cubic-bezier(.34, 1.56, .64, 1);
+    filter: drop-shadow(0 10px 14px color-mix(in srgb, var(--accent-color), transparent 45%));
+}
+
+@keyframes mp-jump-icon {
+    0%   { transform: scale(1.55) rotate(0deg)   translateY(0); }
+    15%  { transform: scale(1.5)  rotate(-2deg)  translateY(2px); }
+    42%  { transform: scale(1.74) rotate(-12deg) translateY(-10px); }
+    65%  { transform: scale(1.65) rotate(9deg)   translateY(-3px); }
+    82%  { transform: scale(1.58) rotate(-5deg)  translateY(1px); }
+    100% { transform: scale(1.6)  rotate(-3deg)  translateY(0); }
+}
+
+/* Sombra de contato: encolhe e clareia no instante do salto (como se o
+   escudo tivesse saído do chão) e volta cheia na aterrissagem — dá peso
+   e physicality ao movimento, em vez de um transform solto no ar. */
+.header .logo::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    bottom: 1px;
+    width: 34px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, color-mix(in srgb, var(--accent-color), transparent 35%), transparent 72%);
+    filter: blur(2.5px);
+    opacity: 0;
+    transition: opacity .25s ease;
+    pointer-events: none;
+}
+
+.header .logo:hover::before {
+    animation: mp-jump-shadow .7s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes mp-jump-shadow {
+    0%   { opacity: .3; transform: scaleX(1); }
+    42%  { opacity: .08; transform: scaleX(.5); }
+    100% { opacity: .3; transform: scaleX(1); }
+}
+
+/* Patinha: "carimba" exatamente no auge do salto (42%, igual ao escudo e
+   à marca) e se desfaz enquanto tudo aterrissa — sincronizada por inteiro
+   com a mesma animação, não um elemento correndo por conta própria. */
+.header .logo::after {
+    content: "🐾";
+    position: absolute;
+    top: -2px;
+    left: 32px;
+    font-size: .95rem;
+    line-height: 1;
+    opacity: 0;
+    transform: scale(.4) rotate(-25deg) translateY(6px);
+    pointer-events: none;
+}
+
+.header .logo:hover::after {
+    animation: mp-jump-paw .7s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes mp-jump-paw {
+    0%   { opacity: 0; transform: scale(.4) rotate(-25deg) translateY(6px); }
+    30%  { opacity: 0; transform: scale(.4) rotate(-25deg) translateY(6px); }
+    42%  { opacity: 1; transform: scale(1.08) rotate(-14deg) translateY(-11px); }
+    65%  { opacity: 1; transform: scale(1) rotate(-10deg) translateY(-8px); }
+    100% { opacity: 0; transform: scale(.75) rotate(-6deg) translateY(-4px); }
+}
+
+@media (max-width: 575.98px) {
+    .header .logo .logo-marca {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .header .logo .logo-marca {
+        transition: none;
+        animation: none;
+    }
+
+    .header .logo::after,
+    .header .logo::before {
+        display: none;
+    }
+}
+
+/* 5. Tabelas sempre roláveis dentro do próprio container */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 6. Quebra de palavras longas (e-mails, URLs) em telas estreitas */
+p,
+li,
+td,
+dd,
+.card-body,
+.alert {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* 7. Ajustes das imagens/boxes com tamanho fixo definidos acima neste arquivo */
+@media (max-width: 991.98px) {
+
+    .gemini,
+    .img-pet,
+    .banho_servicos,
+    .hidratacao_servicos,
+    .secagem_servicos,
+    .escova,
+    .limpeza,
+    .corte {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100% !important;
+    }
+
+    .pets-deitados {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    .card-informacao {
+        margin-left: 0 !important;
+    }
+
+    .banner-funcionamento {
+        padding: 26px !important;
+    }
+}
+
+/* 8. Folga lateral um pouco maior no conteúdo em telas muito pequenas */
+@media (max-width: 575.98px) {
+    .container,
+    .container-fluid {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+}
+
+/* ==========================================================================
+   MOSTRAR / OCULTAR SENHA  —  padrão reutilizável .toggle-senha
+   Uso: <span class="input-group-text toggle-senha" data-target="idDoInput">
+            <i class="bi bi-eye"></i>
+        </span>
+   O comportamento é ligado pelo main.js (delegação global).
+   ========================================================================== */
+.toggle-senha {
+    cursor: pointer;
+    user-select: none;
+    transition: color .2s ease, background-color .2s ease;
+}
+
+.toggle-senha:hover,
+.toggle-senha:focus-visible {
+    color: #175cdd;
+    outline: none;
+}
+
+/* ==========================================================================
+   CAMPOS DAS TELAS DE LOGIN / CADASTRO / SENHA  (.lg-panel, .rs-panel, .rd-panel)
+   --------------------------------------------------------------------------
+   O .input-group vira um campo único: ícone, input e botão de olho ficam
+   dentro da mesma borda arredondada, sem as "quinas" internas que a regra
+   global de .form-control (border-radius 12px !important) criava. O foco
+   destaca o campo inteiro. Os !important são necessários para vencer a
+   regra global acima e os utilitários rounded-* do Bootstrap.
+   ========================================================================== */
+:is(.lg-panel, .rs-panel, .rd-panel) {
+    --campo-accent: #175cdd;
+    --campo-accent-soft: #eaf1fe;
+    --campo-line: #e6ecf5;
+    --campo-line-hover: #cfd9ea;
+    --campo-muted: #8794a7;
+    --campo-placeholder: #a3aec0;
+    --campo-ink: #0f1b34;
+    --campo-erro: #dc3545;
+    --campo-raio: 16px;
+    --campo-altura: 54px;
+}
+
+/* Rótulo um pouco maior e mais afastado do campo: leitura mais confortável */
+:is(.lg-panel, .rs-panel, .rd-panel) form .form-label {
+    font-size: .74rem;
+    margin-bottom: 8px;
+}
+
+/* ---------- Contêiner: a "pílula" do campo ---------- */
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group {
+    flex-wrap: nowrap;
+    align-items: stretch;
+    background: #fff;
+    border: 1.5px solid var(--campo-line);
+    border-radius: var(--campo-raio);
+    overflow: hidden;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group:hover {
+    border-color: var(--campo-line-hover);
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group:focus-within {
+    border-color: var(--campo-accent);
+    box-shadow: 0 0 0 4px var(--campo-accent-soft);
+}
+
+/* ---------- Ícone da esquerda ---------- */
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .input-group-text {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin-left: 0 !important;
+    min-width: 50px;
+    justify-content: center;
+    padding: 0 4px 0 14px;
+    color: var(--campo-muted);
+    font-size: 1.05rem;
+    transition: color .2s ease, background-color .2s ease;
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group:focus-within > .input-group-text:first-child {
+    color: var(--campo-accent);
+}
+
+/* ---------- Input / select dentro do grupo ---------- */
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .form-control,
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .form-select {
+    height: var(--campo-altura) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin-left: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding: 0 16px 0 8px !important;
+    font-size: 1rem;           /* 16px: evita o zoom automático do iOS */
+    color: var(--campo-ink);
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .form-control:focus,
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .form-select:focus {
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* ---------- Botão de mostrar/ocultar senha ---------- */
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .toggle-senha {
+    min-width: 44px;
+    margin: 6px 6px 6px 0 !important;
+    padding: 0 12px;
+    border-radius: 12px !important;
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .toggle-senha:hover,
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .toggle-senha:focus-visible {
+    background: var(--campo-accent-soft) !important;
+    color: var(--campo-accent);
+}
+
+/* ---------- Campos soltos (fora de .input-group) seguem o mesmo visual ---------- */
+:is(.lg-panel, .rs-panel, .rd-panel) .form-control:not(.input-group > .form-control),
+:is(.lg-panel, .rs-panel, .rd-panel) .form-select:not(.input-group > .form-select) {
+    height: var(--campo-altura) !important;
+    border: 1.5px solid var(--campo-line) !important;
+    border-radius: var(--campo-raio) !important;
+    padding: 0 16px !important;
+    font-size: 1rem;
+    color: var(--campo-ink);
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .form-control:not(.input-group > .form-control):focus,
+:is(.lg-panel, .rs-panel, .rd-panel) .form-select:not(.input-group > .form-select):focus {
+    border-color: var(--campo-accent) !important;
+    box-shadow: 0 0 0 4px var(--campo-accent-soft) !important;
+}
+
+/* ---------- Placeholder, preenchimento automático e erro ---------- */
+:is(.lg-panel, .rs-panel, .rd-panel) .form-control::placeholder {
+    color: var(--campo-placeholder);
+    opacity: 1;
+}
+
+/* Sem o fundo amarelo/azul do autocompletar do navegador */
+:is(.lg-panel, .rs-panel, .rd-panel) .form-control:-webkit-autofill,
+:is(.lg-panel, .rs-panel, .rd-panel) .form-control:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+    -webkit-text-fill-color: var(--campo-ink);
+    caret-color: var(--campo-ink);
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group:has(.is-invalid) {
+    border-color: var(--campo-erro);
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, .12);
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group:has(.is-invalid) > .input-group-text:first-child {
+    color: var(--campo-erro);
+}
+
+:is(.lg-panel, .rs-panel, .rd-panel) .input-group > .form-control.is-invalid {
+    background-image: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    :is(.lg-panel, .rs-panel, .rd-panel) .input-group,
+    :is(.lg-panel, .rs-panel, .rd-panel) .input-group > .input-group-text {
+        transition: none;
+    }
+}
+
+/* ==========================================================================
+   ÍCONE DE PERFIL NO HEADER  —  Iconly (SVG embutido em partials/nav-user)
+   ========================================================================== */
+.iconly {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.15em;
+    flex: none;
+}
+
+.navmenu .nav-profile {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.navmenu .nav-profile__badge {
+    width: 30px;
+    height: 30px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(23, 92, 221, .10);
+    color: #175cdd;
+    font-size: 1.1rem;
+    line-height: 0;
+    transition: background-color .25s ease, color .25s ease, transform .25s ease;
+}
+
+.navmenu .nav-profile:hover .nav-profile__badge,
+.navmenu .active .nav-profile__badge {
+    background: #175cdd;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Rótulo "Perfil": escondido no menu horizontal (xl+), visível no menu mobile */
+@media (min-width: 1200px) {
+    .navmenu .nav-profile__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}
+
+/* ==========================================================================
+   CONSULTA DE CEP (ViaCEP) — feedback do campo auxiliar
+   ========================================================================== */
+.cep-status {
+    display: block;
+    margin-top: 6px;
+    font-size: .8rem;
+    min-height: 1em;
+    color: #8794a7;
+}
+
+.cep-status.is-loading {
+    color: #175cdd;
+}
+
+.cep-status.is-error {
+    color: #dc2626;
+}
+
+.cep-status.is-ok {
+    color: #12643a;
+}
+
+.btn-resetar {
+    border: none;
+    background: #e0ecff;
+    color: #2563eb;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-resetar:hover {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-resetar i {
+    margin-right: 5px;
+}
+
+/* =========================================================
+   BOTÕES DA TABELA
+========================================================= */
+
+.acoes-agendamento {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-resetar {
+    margin: 0;
+}
+
+.btn-resetar,
+.btn-detalhes {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    height: 42px;
+    padding: 0 18px;
+
+    border-radius: 22px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+
+/* RESETAR */
+
+.btn-resetar {
+    border: none;
+    background: #eef4ff;
+    color: #2563eb;
+}
+
+.btn-resetar:hover {
+    background: #2563eb;
+    color: white;
+}
+
+
+/* VER DETALHES */
+
+.btn-detalhes {
+    border: 1px solid #bfdbfe;
+    background: white;
+    color: #2563eb;
+}
+
+.btn-detalhes:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
+}
+
+
+/* =========================================================
+   FUNDO
+========================================================= */
+
+.fundo-detalhes {
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(15, 23, 42, 0.25);
+
+    z-index: 9998;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition: all 0.3s ease;
+}
+
+.fundo-detalhes.aberto {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* =========================================================
+   PAINEL LATERAL
+========================================================= */
+
+.painel-detalhes {
+    position: fixed;
+
+    top: 0;
+    right: -480px;
+
+    width: 450px;
+    max-width: 90vw;
+    height: 100vh;
+
+    background: #ffffff;
+
+    z-index: 9999;
+
+    box-shadow: -10px 0 40px rgba(15, 23, 42, 0.15);
+
+    transition: right 0.35s ease;
+
+    overflow-y: auto;
+}
+
+.painel-detalhes.aberto {
+    right: 0;
+}
+
+
+/* =========================================================
+   CONTEÚDO
+========================================================= */
+
+.painel-detalhes-conteudo {
+    padding: 35px 32px 30px;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.detalhes-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 35px;
+}
+
+.detalhes-pet {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.detalhes-pet-icon {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 50%;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 25px;
+}
+
+.detalhes-pet h2 {
+    margin: 0;
+
+    color: #1e293b;
+
+    font-size: 22px;
+
+    font-weight: 700;
+}
+
+.btn-fechar-detalhes {
+    width: 38px;
+    height: 38px;
+
+    border: none;
+
+    background: transparent;
+
+    color: #64748b;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    font-size: 18px;
+
+    transition: 0.2s;
+}
+
+.btn-fechar-detalhes:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+
+/* =========================================================
+   PROGRESSO
+========================================================= */
+
+.detalhes-progresso {
+    margin-bottom: 25px;
+}
+
+.progresso-topo {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 13px;
+
+    color: #64748b;
+
+    font-size: 16px;
+}
+
+.progresso-topo strong {
+    color: #2563eb;
+
+    font-size: 18px;
+}
+
+.barra-progresso {
+    width: 100%;
+    height: 12px;
+
+    background: #e2e8f0;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+.barra-progresso-preenchida {
+    height: 100%;
+
+    background: #f59e0b;
+
+    border-radius: 20px;
+
+    transition: width 0.4s ease;
+}
+
+
+/* =========================================================
+   SERVIÇO
+========================================================= */
+
+.detalhes-servico {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 10px 20px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid #9bbce3;
+
+    border-radius: 25px;
+
+    background: #eaf2fb;
+
+    color: #28609c;
+
+    font-weight: 600;
+}
+
+.detalhes-servico i {
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   ETAPAS
+========================================================= */
+
+.lista-etapas {
+    position: relative;
+
+    margin-top: 5px;
+}
+
+
+/* linha vertical */
+
+.lista-etapas::before {
+    content: "";
+
+    position: absolute;
+
+    left: 18px;
+
+    top: 20px;
+    bottom: 20px;
+
+    width: 3px;
+
+    background: #e2e8f0;
+}
+
+
+/* etapa */
+
+.etapa {
+    position: relative;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 18px;
+
+    min-height: 72px;
+
+    z-index: 1;
+}
+
+
+/* ícone */
+
+.etapa-icone {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: white;
+
+    border: 2px solid #e2e8f0;
+
+    color: #64748b;
+
+    font-size: 15px;
+}
+
+
+/* etapa concluída */
+
+.etapa.concluida .etapa-icone {
+    background: #28609c;
+
+    border-color: #28609c;
+
+    color: white;
+}
+
+
+/* etapa atual */
+
+.etapa.atual .etapa-icone {
+    width: 44px;
+    height: 44px;
+
+    margin-left: -3px;
+
+    margin-top: -3px;
+
+    background: #28609c;
+
+    border-color: #28609c;
+
+    color: white;
+
+    box-shadow: 0 5px 15px rgba(40, 96, 156, 0.25);
+}
+
+
+/* conteúdo */
+
+.etapa-conteudo {
+    padding-top: 7px;
+
+    color: #64748b;
+
+    font-size: 17px;
+}
+
+.etapa.atual .etapa-conteudo {
+    padding-top: 3px;
+}
+
+.etapa.atual .etapa-conteudo strong {
+    display: block;
+
+    color: #1e293b;
+
+    font-size: 18px;
+
+    margin-bottom: 3px;
+}
+
+.etapa.atual .etapa-conteudo small {
+    display: block;
+
+    color: #f59e0b;
+
+    font-size: 16px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   RFID
+========================================================= */
+
+.btn-rfid {
+    width: 100%;
+
+    height: 50px;
+
+    margin-top: 10px;
+
+    border: 1px solid #dbe5f0;
+
+    border-radius: 15px;
+
+    background: white;
+
+    color: #28609c;
+
+    font-size: 17px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    transition: 0.2s;
+}
+
+.btn-rfid:hover {
+    background: #eff6ff;
+
+    border-color: #93c5fd;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .painel-detalhes {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .painel-detalhes-conteudo {
+        padding: 25px 20px;
+    }
+
+    .acoes-agendamento {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-resetar,
+    .btn-detalhes {
+        width: 100%;
+    }
+}
+
+/* ==========================================================================
+   CABEÇALHO — visual "glass header" (blur/elevação ao rolar), links em
+   pílula e ações em destaque (Entrar / Cadastre-se / Sair como botões).
+   Sobrepõe o cabeçalho padrão do template (main.css) sem alterá-lo.
+   ========================================================================== */
+.header {
+    /* Borda e sombra sempre presentes (bem sutis) — o vidro precisa ter uma
+       borda visível pra se "ler" como vidro em QUALQUER página, mesmo nas
+       que não têm nada colorido por trás do cabeçalho. Sem isso, sobre um
+       fundo claro o efeito de blur fica praticamente invisível e passa a
+       impressão de que a transparência simplesmente não está ligada ali. */
+    border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 93%);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, .03), 0 12px 30px -20px rgba(15, 23, 42, .18) !important;
+    transition: border-color .35s ease, box-shadow .35s ease;
+}
+
+/* O fundo + blur do "vidro" ficam num ::before, não direto no .header.
+   Motivo: backdrop-filter (igual transform/filter) cria um novo
+   "containing block" pra qualquer descendente position:fixed — e o
+   .header tem descendentes fixed de verdade (o botão #scroll-top, o
+   painel do menu mobile). Com o blur no .header, esses elementos ficavam
+   "presos" dentro da altura de ~65px do cabeçalho em vez de ocupar a
+   viewport inteira (o botão de voltar ao topo aparecia perto do topo da
+   página, colado no menu, em vez de fixo no canto inferior direito). O
+   ::before cobre a mesma área visualmente (inset:0) mas, por não ser o
+   .header em si, não afeta o containing block dos filhos fixed. */
+.header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: color-mix(in srgb, var(--background-color), transparent 62%) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(6px);
+    backdrop-filter: saturate(180%) blur(6px);
+    transition: background-color .35s ease, backdrop-filter .35s ease;
+}
+
+/* Navegadores sem suporte a backdrop-filter (ou com ele desligado): cai
+   pra um branco quase opaco, pra nunca ficar com um cabeçalho "lavado"
+   e ilegível por falta do blur. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .header::before {
+        background-color: color-mix(in srgb, var(--background-color), transparent 8%) !important;
+    }
+}
+
+.scrolled .header {
+    border-bottom-color: color-mix(in srgb, var(--default-color), transparent 90%);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .08) !important;
+}
+
+.scrolled .header::before {
+    background-color: color-mix(in srgb, var(--background-color), transparent 15%) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+}
+
+/* Links comuns do menu: só o texto, sem pílula/fundo/sombra — a única
+   marcação é a barrinha azul embaixo, que funciona como uma barra de
+   carregamento (cresce da esquerda pra direita ao passar o mouse, encolhe
+   de volta ao tirar) e fica permanentemente cheia no item da página atual. */
+@media (min-width: 1200px) {
+    .navmenu > ul > li {
+        position: relative;
+        padding-top: 15px;
+        padding-bottom: 23px;
+    }
+
+    .navmenu > ul > li > a.nav-link-pill {
+        position: relative;
+        padding: 8px 2px;
+        transition: color .25s ease;
+    }
+
+    /* Anima "width" direto (em vez de transform:scaleX) — cresce da
+       esquerda pra direita ao passar o mouse, encolhe de volta pro mesmo
+       lado ao tirar, ancorada em left:0 o tempo todo. */
+    .navmenu > ul > li > a.nav-link-pill:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 4px;
+        width: 0%;
+        height: 2.5px;
+        border-radius: 999px;
+        background: var(--accent-color);
+        /* ease-in (lento no início, rápido no fim) pra saída: com a mesma
+           curva de desaceleração do crescimento, o encolhimento (que
+           percorre a curva ao contrário) perderia quase toda a largura já
+           nos primeiros instantes e pareceria um "sumiço" instantâneo em
+           vez de um recuo visível da direita pra esquerda. */
+        transition: width .3s cubic-bezier(.64, 0, .78, 0);
+        pointer-events: none;
+        z-index: 3;
+    }
+
+    .navmenu > ul > li > a.nav-link-pill:hover:before,
+    .navmenu > ul > li > a.nav-link-pill:focus-visible:before {
+        width: 100%;
+        /* expo-out só na entrada: cresce rápido e desacelera suave até
+           preencher, como uma barra de carregamento terminando. */
+        transition: width .4s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .navmenu > ul > li > a.nav-link-pill:hover,
+    .navmenu > ul > li > a.nav-link-pill:focus-visible {
+        color: var(--nav-hover-color);
+    }
+
+    /* Item da página atual: texto em destaque + barra já cheia (sem
+       animação), pra ficar óbvio onde o usuário está mesmo sem hover. */
+    .navmenu > ul > li > a.nav-link-pill.active {
+        color: var(--nav-hover-color) !important;
+        font-weight: 700;
+    }
+
+    .navmenu > ul > li > a.nav-link-pill.active:before {
+        width: 100%;
+    }
+}
+
+/* Ações em destaque: Entrar (contorno) e Cadastre-se (sólido), como no
+   par de botões "Sign In / Get Started" do header de referência. */
+.navmenu .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-weight: 600;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.navmenu .nav-btn:before {
+    display: none;
+}
+
+.navmenu .nav-btn-outline {
+    border: 1px solid color-mix(in srgb, var(--default-color), transparent 72%);
+    color: var(--heading-color);
+    background-color: transparent;
+}
+
+.navmenu .nav-btn-outline:hover,
+.navmenu .nav-btn-outline:focus-visible {
+    background-color: color-mix(in srgb, var(--default-color), transparent 94%);
+    color: var(--heading-color);
+    border-color: color-mix(in srgb, var(--accent-color), transparent 40%);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 18px -10px rgba(15, 23, 42, .25);
+}
+
+.navmenu .nav-btn-outline:active {
+    transform: translateY(-1px) scale(.97);
+}
+
+.navmenu .nav-btn-outline.active {
+    background-color: color-mix(in srgb, var(--accent-color), transparent 88%);
+    border-color: color-mix(in srgb, var(--accent-color), transparent 35%);
+    color: var(--nav-hover-color) !important;
+    font-weight: 700;
+}
+
+.navmenu .nav-btn-solid {
+    background-color: var(--accent-color);
+    color: var(--contrast-color) !important;
+    border: 1px solid var(--accent-color);
+}
+
+.navmenu .nav-btn-solid:hover,
+.navmenu .nav-btn-solid:focus-visible,
+.navmenu .nav-btn-solid.active,
+.navmenu .nav-btn-solid.active:focus {
+    background-color: color-mix(in srgb, var(--accent-color), black 12%);
+    color: var(--contrast-color) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 22px -8px color-mix(in srgb, var(--accent-color), transparent 40%);
+}
+
+.navmenu .nav-btn-solid:active {
+    transform: translateY(-1px) scale(.97);
+}
+
+/* "Entrar" vira um menu com as duas portas de acesso (cliente / equipe).
+   Seletores prefixados com .navmenu de propósito: o CSS do template
+   (main.css) estiliza qualquer <ul>/<a> dentro de .navmenu de forma
+   genérica (inclusive display:flex nos <ul>), e isso precisa perder para
+   o comportamo padrão do dropdown do Bootstrap (fechado = display:none). */
+.navmenu .nav-entry {
+    position: relative;
+}
+
+.navmenu .nav-entry .dropdown-toggle::after {
+    margin-left: 8px;
+    vertical-align: .1em;
+    transition: transform .25s ease;
+}
+
+.navmenu .nav-entry.show .dropdown-toggle::after {
+    transform: rotate(180deg);
+}
+
+.navmenu .nav-entry-menu {
+    display: none !important;
+    min-width: 270px;
+    padding: 8px !important;
+    margin: 12px 0 0 !important;
+    border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 24px 48px -18px rgba(15, 23, 42, .28) !important;
+    background-color: var(--background-color) !important;
+}
+
+.navmenu .nav-entry-menu.show {
+    display: block !important;
+    animation: mp-menu-in .2s ease both;
+}
+
+.navmenu .nav-entry-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 12px;
+    padding: 10px 12px !important;
+    border-radius: 12px;
+    white-space: normal !important;
+    font-size: .9rem !important;
+    transition: background-color .2s ease;
+}
+
+.navmenu .nav-entry-item:hover,
+.navmenu .nav-entry-item:focus-visible {
+    background-color: color-mix(in srgb, var(--accent-color), transparent 92%);
+}
+
+.navmenu .nav-entry-item.active,
+.navmenu .nav-entry-item.active:hover,
+.navmenu .nav-entry-item.active:focus {
+    background-color: color-mix(in srgb, var(--accent-color), transparent 88%) !important;
+    color: inherit !important;
+}
+
+.navmenu .nav-entry-item__icon {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-color), transparent 88%);
+    color: var(--accent-color);
+    font-size: 1.05rem;
+    transition: background-color .2s ease, color .2s ease;
+}
+
+.navmenu .nav-entry-item.active .nav-entry-item__icon {
+    background: var(--accent-color);
+    color: var(--contrast-color);
+}
+
+.navmenu .nav-entry-item strong {
+    display: block;
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--heading-color);
+}
+
+.navmenu .nav-entry-item small {
+    display: block;
+    font-size: .74rem;
+    color: color-mix(in srgb, var(--default-color), transparent 35%);
+}
+
+@media (max-width: 1199px) {
+    .navmenu .nav-entry-menu {
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+        width: 100%;
+        box-shadow: none !important;
+        border-color: color-mix(in srgb, var(--default-color), transparent 92%) !important;
+    }
+}
+
+/* ==========================================================================
+   MARCA "MobiPet" ao lado do escudo — reaproveita as cores oficiais do logo
+   (Mobi em navy, Pet em azul), com o "P" maiúsculo.
+   ========================================================================== */
+.header .logo {
+    gap: 6px;
+}
+
+.logo-wordmark {
+    font-family: var(--heading-font);
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--heading-color);
+}
+
+.logo-wordmark__mobi,
+.logo-wordmark__pet {
+    display: inline-block;
+    transition: transform .25s ease;
+}
+
+.logo-wordmark__pet {
+    color: var(--accent-color);
+}
+
+/* "MobiPet" salta junto com o escudo — mesma duração (.7s), mesma curva
+   elástica e os mesmos instantes de antecipação/auge/pouso (15% / 42% /
+   100%) das animações do ícone, da sombra e da patinha logo acima. É um
+   pulo só, em uníssono, não três elementos cada um no seu próprio ritmo. */
+@keyframes mp-jump-word {
+    0%   { transform: translateY(0)    scale(1); }
+    15%  { transform: translateY(1px)  scale(.98); }
+    42%  { transform: translateY(-9px) scale(1.06); }
+    65%  { transform: translateY(-3px) scale(1.02); }
+    82%  { transform: translateY(1px)  scale(.99); }
+    100% { transform: translateY(0)    scale(1); }
+}
+
+.header .logo:hover .logo-wordmark__mobi,
+.header .logo:hover .logo-wordmark__pet {
+    animation: mp-jump-word .7s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@media (max-width: 420px) {
+    .logo-wordmark {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .header .logo:hover .logo-wordmark__mobi,
+    .header .logo:hover .logo-wordmark__pet {
+        animation: none;
+    }
+
+    .navmenu > ul > li > a.nav-link-pill:before {
+        transition: none;
+    }
+}
+
+/* Botão de menu (mobile): vira um botão com borda, como um ícone shadcn */
+@media (max-width: 1199px) {
+    .mobile-nav-toggle {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid color-mix(in srgb, var(--default-color), transparent 75%);
+        border-radius: 10px;
+        transition: background-color .2s ease, border-color .2s ease, transform .3s ease;
+    }
+
+    .mobile-nav-toggle:hover {
+        background-color: color-mix(in srgb, var(--default-color), transparent 94%);
+    }
+
+    .mobile-nav-toggle.bi-x {
+        transform: rotate(90deg);
+    }
+
+    /* Painel do menu mobile: vidro fosco (blur) no lugar do overlay escuro */
+    .mobile-nav-active .navmenu {
+        background: color-mix(in srgb, var(--background-color), transparent 4%);
+        -webkit-backdrop-filter: saturate(180%) blur(18px);
+        backdrop-filter: saturate(180%) blur(18px);
+    }
+
+    .mobile-nav-active .navmenu > ul {
+        background-color: var(--background-color);
+        border-color: color-mix(in srgb, var(--default-color), transparent 90%);
+        animation: mp-menu-in .25s ease both;
+    }
+
+    .mobile-nav-active .mobile-nav-toggle {
+        color: var(--heading-color) !important;
+        background-color: var(--background-color);
+        border-color: color-mix(in srgb, var(--default-color), transparent 75%);
+    }
+
+    .navmenu > ul > li > a.nav-link-pill {
+        position: relative;
+        border-radius: 10px;
+        transition: background-color .2s ease, color .2s ease, padding-left .2s ease;
+    }
+
+    .navmenu > ul > li > a.nav-link-pill:hover {
+        background-color: color-mix(in srgb, var(--accent-color), transparent 92%);
+        padding-left: 26px;
+    }
+
+    /* No mobile, o item ativo ganha uma barrinha de destaque à esquerda
+       em vez do pontinho (que só cabe no menu horizontal). */
+    .navmenu > ul > li > a.nav-link-pill.active {
+        background-color: color-mix(in srgb, var(--accent-color), transparent 88%);
+        color: var(--nav-hover-color) !important;
+        font-weight: 700;
+    }
+
+    .navmenu > ul > li > a.nav-link-pill.active::before {
+        content: "";
+        position: absolute;
+        left: 6px;
+        top: 50%;
+        width: 4px;
+        height: 60%;
+        transform: translateY(-50%);
+        border-radius: 999px;
+        background: var(--accent-color);
+    }
+
+    .navmenu .nav-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@keyframes mp-menu-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
